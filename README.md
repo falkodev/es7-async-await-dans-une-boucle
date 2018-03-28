@@ -25,8 +25,7 @@ function async downloadContent (urls) {
         return content;
     });
 }
-``
-
+```
 
 Il y a deux problèmes avec ce code:
 
@@ -44,8 +43,9 @@ fonction async downloadContent (urls) {
 
 ## Array.prototype.forEach
 
-Utilisons la méthode Array forEach () pour enregistrer le contenu de plusieurs fichiers pointés via des URL:
+Utilisons la méthode Array `forEach()` pour enregistrer le contenu de plusieurs fichiers pointés via des URL:
 
+```js
 Fonction asynchrone logContent (urls) {
     urls.forEach (url => {
         // Mauvaise syntaxe
@@ -53,6 +53,8 @@ Fonction asynchrone logContent (urls) {
         console.log (contenu);
     });
 }
+```
+
 Encore une fois, ce code produira une erreur de syntaxe, car vous ne pouvez pas utiliser await dans les fonctions de flèches normales.
 
 Utilisons une fonction de flèche asynchrone:
