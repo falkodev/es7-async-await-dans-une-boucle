@@ -16,6 +16,7 @@ function async downloadContent (urls) {
 }
 ```
 
+
 Cela ne fonctionne pas, car `await` a besoin d'être dans une fonction asynchrone `async`. On pourrait penser qu'il suffit d'ajouter `async` dans la boucle :
 
 ```js
@@ -31,7 +32,7 @@ function async downloadContent (urls) {
 Il y a deux problèmes avec ce code:
 
 Le résultat est maintenant un tableau de promesses, pas un tableau de string.
-Les callbacks ne sont pas achevées une fois que map()` est terminé, car `await n'interrompt que sa fonction parente et que `httpGet()` est résolu de manière asynchrone. 
+Les callbacks ne sont pas achevées une fois que `map()` est terminé, car `await` n'interrompt que sa fonction parente et que `httpGet()` est résolu de manière asynchrone. 
 
 Nous pouvons résoudre les deux problèmes via `Promise.all, qui convertit un tableau de promesses en une promesse pour un tableau (avec les valeurs remplies par les promesses):
 
