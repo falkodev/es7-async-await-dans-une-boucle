@@ -7,7 +7,7 @@
 Dans le code suivant, des urls dans un array sont téléchargées et renvoyées dans un autre array.
 
 ```js
-function async downloadContent (urls) {
+async function downloadContent (urls) {
     return urls.map(url => {
         // Mauvaise syntaxe
         const content = await httpGet(url);
@@ -19,7 +19,7 @@ function async downloadContent (urls) {
 Cela ne fonctionne pas, car `await` a besoin d'être dans une fonction asynchrone `async`. On pourrait penser qu'il suffit d'ajouter `async` dans la boucle :
 
 ```js
-function async downloadContent (urls) {
+async function downloadContent (urls) {
     return urls.map(async (url) => {
         const content = attend httpGet(url);
         return content;
@@ -32,61 +32,74 @@ Il y a deux problèmes avec ce code:
 Le résultat est maintenant un tableau de promesses, pas un tableau de string.
 Les callbacks ne sont pas achevées une fois que `map()` est terminé, car `await` n'interrompt que sa fonction parente et que `httpGet()` est résolu de manière asynchrone. 
 
-Nous pouvons résoudre les deux problèmes via `Promise.all, qui convertit un tableau de promesses en une promesse pour un tableau (avec les valeurs remplies par les promesses):
+Nous pouvons résoudre les deux problèmes via `Promise.all`, qui convertit un tableau de promesses en une sorte de promesse parente :
 
 ```js
-fonction async downloadContent (urls) {
+async function downloadContent (urls) {
     const promiseArray = urls.map(url => httpGet (url));
-    return Promise.all (promiseArray);
+    return Promise.all(promiseArray);
 }
 ```
 
 ## Array.prototype.forEach
 
-Utilisons la méthode Array `forEach()` pour enregistrer le contenu de plusieurs fichiers pointés via des URL:
+Avec `forEach()`, voici comment traiter le même exemple :
 
 ```js
-Fonction asynchrone logContent (urls) {
-    urls.forEach (url => {
+async function logContent (urls) {
+    urls.forEach(url => {
         // Mauvaise syntaxe
-        const content = attend httpGet (url);
-        console.log (contenu);
+        const content = await httpGet (url);
+        console.log(content);
     });
 }
 ```
 
-Encore une fois, ce code produira une erreur de syntaxe, car vous ne pouvez pas utiliser await dans les fonctions de flèches normales.
+Encore une fois, ce code produira une erreur de syntaxe, car on ne peut pas utiliser `await` dans les fonctions synchrones.
 
-Utilisons une fonction de flèche asynchrone:
+Avec une fonction asynchrone:
 
-Fonction asynchrone logContent (urls) {
-    urls.forEach (async url => {
-        const content = attend httpGet (url);
-        console.log (contenu);
+```js
+async function logContent (urls) {
+    urls.forEach(async url => {
+        const content = await httpGet(url);
+        console.log(content);
     });
-    // Pas fini ici
+    // Promesses pas encore résolues ici
 }
-Cela fonctionne, mais il y a une mise en garde: la promesse retournée par httpGet () est résolue de manière asynchrone, ce qui signifie que les rappels ne sont pas terminés lorsque forEach () renvoie. Par conséquent, vous ne pouvez pas attendre la fin de logContent ().
+```
 
-Si ce n'est pas ce que vous voulez, vous pouvez convertir forEach () en boucle for-of:
+Cela fonctionne techniquement, mais il faut savoir une chose : la promesse retournée par `httpGet` est résolue de manière asynchrone, ce qui signifie que les callbacks ne sont pas terminés lorsque `forEach` se termine. Par conséquent, `logContent` ne pourras pas être `await` par une autre fonction si besoin.
 
-Fonction asynchrone logContent (urls) {
-    pour (const url d'urls) {
-        const content = attend httpGet (url);
-        console.log (contenu);
+Dans ce cas, une boucle `for-of` est nécessaire :
+
+```js
+async function logContent (urls) {
+    for (const url of urls) {
+        const content = await httpGet(url);
+        console.log(content);
     }
 }
-Maintenant tout est fini après la boucle for-of. Cependant, les étapes de traitement se déroulent de manière séquentielle: httpGet () n'est appelé qu'une deuxième fois après la fin du premier appel. Si vous souhaitez que les étapes de traitement se déroulent en parallèle, vous devez utiliser Promise.all ():
+```
 
-Fonction asynchrone logContent (urls) {
-    attendez Promise.all (urls.map (
+Désormais, les promesses de `logContent` sont résolues à la sortie de la boucle `for-of`. Cependant, les étapes de traitement se déroulent de manière séquentielle : le 2e appel à `httpGet` n'est appelé qu'après la fin du premier appel du 1er passage dans la boucle. 
+
+En cas de besoin de parallélisation, il faut utiliser `Promise.all` : 
+
+```js
+async function logContent (urls) {
+    await Promise.all(urls.map(
         async url => {
-            const content = attend httpGet (url);
-            console.log (contenu);
+            const content = await httpGet(url);
+            console.log(content);
         }));
 }
-map () est utilisé pour créer un tableau de promesses. Nous ne sommes pas intéressés par les résultats qu'ils accomplissent, nous attendons seulement jusqu'à ce qu'ils soient tous remplis. Cela signifie que nous avons terminé complètement à la fin de cette fonction asynchrone. Nous pourrions tout aussi bien renvoyer Promise.all (), mai
+```
 
-s le résultat de la fonction serait un tableau dont les éléments sont tous indéfinis.
+`map` est utilisé ici pour créer un tableau de promesses qui se remplit au fur et à mesure. Les promesses seront résolues à la fin de la fonction.
+
+## Conclusion
+
+Pour résumer, la méthode `forEach` lance les promesses sans attendre leur résolution, elle est donc fortement déconseillée. Il vaut mieux utiliser une boucle `for-of` pour un déroulé séquentiel de plusieurs promesses. Et `Promise.all` avec `map` pour des résolutions en parallèle.
 
 
