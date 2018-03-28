@@ -14,8 +14,7 @@ function async downloadContent (urls) {
         return content;
     });
 }
-``
-
+```
 
 Cela ne fonctionne pas, car `await` a besoin d'être dans une fonction asynchrone `async`. On pourrait penser qu'il suffit d'ajouter `async` dans la boucle :
 
