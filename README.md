@@ -21,7 +21,7 @@ Cela ne fonctionne pas, car `await` a besoin d'être dans une fonction asynchron
 ```js
 async function downloadContent (urls) {
     return urls.map(async (url) => {
-        const content = attend httpGet(url);
+        const content = await httpGet(url);
         return content;
     });
 }
@@ -29,8 +29,8 @@ async function downloadContent (urls) {
 
 Il y a deux problèmes avec ce code:
 
-Le résultat est maintenant un tableau de promesses, pas un tableau de string.
-Les callbacks ne sont pas achevées une fois que `map()` est terminé, car `await` n'interrompt que sa fonction parente et que `httpGet()` est résolu de manière asynchrone. 
+Le résultat est maintenant un tableau de promesses, pas un tableau de string.  
+Les callbacks ne sont pas achevées une fois que `map()` est terminé, car `await` n'interrompt que sa fonction parente et que `httpGet()` est résolu de manière asynchrone.
 
 Nous pouvons résoudre les deux problèmes via `Promise.all`, qui convertit un tableau de promesses en une sorte de promesse parente :
 
@@ -82,9 +82,9 @@ async function logContent (urls) {
 }
 ```
 
-Désormais, les promesses de `logContent` sont résolues à la sortie de la boucle `for-of`. Cependant, les étapes de traitement se déroulent de manière séquentielle : le 2e appel à `httpGet` n'est appelé qu'après la fin du premier appel du 1er passage dans la boucle. 
+Désormais, les promesses de `logContent` sont résolues à la sortie de la boucle `for-of`. Cependant, les étapes de traitement se déroulent de manière séquentielle : le 2e appel à `httpGet` n'est appelé qu'après la fin du premier appel du 1er passage dans la boucle.
 
-En cas de besoin de parallélisation, il faut utiliser `Promise.all` : 
+En cas de besoin de parallélisation, il faut utiliser `Promise.all` :
 
 ```js
 async function logContent (urls) {
@@ -101,5 +101,4 @@ async function logContent (urls) {
 ## Conclusion
 
 Pour résumer, la méthode `forEach` lance les promesses sans attendre leur résolution, elle est donc fortement déconseillée. Il vaut mieux utiliser une boucle `for-of` pour un déroulé séquentiel de plusieurs promesses. Et `Promise.all` avec `map` pour des résolutions en parallèle.
-
 
